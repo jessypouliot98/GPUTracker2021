@@ -21,17 +21,24 @@ class Scraper {
         return this;
     }
 
+	protected async debugScreenshot(page: Page) {
+		if ((process.env.DEBUG || '').toUpperCase() === 'TRUE') {
+			await page.screenshot({ path: DEBUG_SCREENSHOT });
+		}
+	}
+
     public async search(url: string, waitForSelector: string, selector: string, callback: (elements: Element[], ...args: unknown[]) => any): Promise<[Page|undefined, any]> {
         let page;
 
 		const waitForFullPage = async(page: Page) => {
-			await page.waitForSelector(waitForSelector);
 			await page.setViewport({ width: 1920, height: 1080 });
 
+			await this.debugScreenshot(page);
+
+			await page.waitForSelector(waitForSelector);
+
 			while (true) {
-				if ((process.env.DEBUG || '').toUpperCase() === 'TRUE') {
-					await page.screenshot({ path: DEBUG_SCREENSHOT });
-				}
+				await this.debugScreenshot(page);
 
 				await page.evaluate((waitForSelector) => {
 					const node = document.querySelector<Element>(waitForSelector);
